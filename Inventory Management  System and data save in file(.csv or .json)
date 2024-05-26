@@ -1,0 +1,111 @@
+import pandas as pd
+from tabulate import tabulate
+
+print("-------Inventory Management System-------")
+
+# Initialize empty lists for each column
+id = []
+name = []
+qty = []
+price = []
+cate = []
+
+def add_Item():
+    item_id = int(input("enter item id  "))
+    item_name = input("enter item name  ")
+    item_quantity = int(input("enter item quantity  "))
+    item_price = float(input("enter item price  "))
+    item_category = input("enter item category  ")
+    id.append(item_id)
+    name.append(item_name)
+    qty.append(item_quantity)
+    price.append(item_price)
+    cate.append(item_category)
+    print()
+    print(f"Item with Item ID {item_id} added successfully.")
+    print()
+
+def create_dataframe():
+    # Create the dataset dictionary
+    data = {
+        'Item ID': id,
+        'Item Name': name,
+        'Quantity': qty,
+        'Price': price,
+        'Category': cate
+    }
+    # Convert to DataFrame
+    df = pd.DataFrame(data)
+    # Add Serial Number column
+    df.insert(0, 'Serial No', range(1, len(df) + 1))
+    return df
+
+def search_item():
+    df = create_dataframe()
+    search_item_id = int(input("Enter the Item ID you want to search: "))
+    filtered_df = df[df['Item ID'] == search_item_id]
+    if not filtered_df.empty:
+        print(tabulate(filtered_df, headers='keys', tablefmt='grid', showindex=False, stralign='center', numalign='center'))
+    else:
+        print(f"No item found with Item ID {search_item_id}")
+def display_inventory():
+    df = create_dataframe()
+    print(tabulate(df, headers='keys', tablefmt='grid', showindex=False, stralign='center', numalign='center'))
+
+
+def delete_item():
+    delete_item_id = int(input("Enter the Item ID you want to delete: "))
+    index_to_delete = id.index(delete_item_id)
+    del id[index_to_delete]
+    del name[index_to_delete]
+    del qty[index_to_delete]
+    del price[index_to_delete]
+    del cate[index_to_delete]
+    print(f"Item with Item ID {delete_item_id} deleted successfully.")
+
+def update_item():
+    update_item_id = int(input("Enter the Item ID you want to update: "))
+    index_to_update = id.index(update_item_id)
+    print("Enter the new details for the item:")
+    name[index_to_update] = input(f"New name for item {update_item_id}: ")
+    qty[index_to_update] = int(input(f"New quantity for item {update_item_id}: "))
+    price[index_to_update] = float(input(f"New price for item {update_item_id}: "))
+    cate[index_to_update] = input(f"New category for item {update_item_id}: ")
+    print(f"Item with Item ID {update_item_id} updated successfully.")
+    
+def save_inventory():
+    filename = input("Enter the filename to save the inventory (include extension .csv or .json): ")
+    df = create_dataframe()
+    if filename.endswith('.csv'):
+        df.to_csv(filename, index=False)
+        print(f"Inventory saved to {filename} successfully.")
+    elif filename.endswith('.json'):
+        df.to_json(filename, orient='records')
+        print(f"Inventory saved to {filename} successfully.")
+    else:
+        print("Unsupported file format. Please use .csv or .json extension.")
+        
+    
+while True:
+    select = input("""1.) Add Item \n2.) Search Item \n3.) Desplay all Item \n4.) Delete Item \n5.) Update Item \n6.) File Save \n7.) Exit\n\n   """)
+    print()
+    if select == '1':
+        add_Item()
+    elif select == '2':
+        search_item()
+    elif select == '3':
+        display_inventory()
+    elif select == '4':
+        delete_item()
+    
+    elif select == '5':
+        update_item()
+        
+    elif select == '6':
+        save_inventory()
+    elif select == '7':
+        print("Database Is Successfully Closed")
+        break
+    else:
+        print("Invalid Enter!")
+
