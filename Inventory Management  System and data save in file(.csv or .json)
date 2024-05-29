@@ -3,79 +3,98 @@ from tabulate import tabulate
 
 print("-------Inventory Management System-------")
 
-# Initialize empty lists for each column
-id = []
-name = []
-qty = []
-price = []
-cate = []
+class InventoryItem:
+    def __init__(self, item_id, item_name, item_quantity, item_price, item_category):
+        self.item_id = item_id
+        self.item_name = item_name
+        self.item_quantity = item_quantity
+        self.item_price = item_price
+        self.item_category = item_category
 
-def add_Item():
-    item_id = int(input("enter item id  "))
-    item_name = input("enter item name  ")
-    item_quantity = int(input("enter item quantity  "))
-    item_price = float(input("enter item price  "))
-    item_category = input("enter item category  ")
-    id.append(item_id)
-    name.append(item_name)
-    qty.append(item_quantity)
-    price.append(item_price)
-    cate.append(item_category)
-    print()
-    print(f"Item with Item ID {item_id} added successfully.")
-    print()
+class Inventory:
+    def __init__(self):
+        self.items = []
 
-def create_dataframe():
-    # Create the dataset dictionary
-    data = {
-        'Item ID': id,
-        'Item Name': name,
-        'Quantity': qty,
-        'Price': price,
-        'Category': cate
-    }
-    # Convert to DataFrame
-    df = pd.DataFrame(data)
-    # Add Serial Number column
-    df.insert(0, 'Serial No', range(1, len(df) + 1))
-    return df
+    def add_item(self, item):
+        if any(existing_item.item_id == item.item_id for existing_item in self.items):
+            print(f"Item ID {item.item_id} already exists. Use update to change the item details.")
+        else:
+            self.items.append(item)
+            print(f"Item with ID {item.item_id} added successfully.")
 
-def search_item():
-    df = create_dataframe()
-    search_item_id = int(input("Enter the Item ID you want to search: "))
-    filtered_df = df[df['Item ID'] == search_item_id]
-    if not filtered_df.empty:
-        print(tabulate(filtered_df, headers='keys', tablefmt='grid', showindex=False, stralign='center', numalign='center'))
-    else:
-        print(f"No item found with Item ID {search_item_id}")
-def display_inventory():
-    df = create_dataframe()
+    def remove_item(self, item_id):
+        for i, item in enumerate(self.items):
+            if item.item_id == item_id:
+                del self.items[i]
+                print(f"Item with ID {item_id} deleted successfully.")
+                return
+        print(f"Item ID {item_id} not found.")
+
+    def update_item(self, item_id, new_name=None, new_quantity=None, new_price=None, new_category=None):
+        for item in self.items:
+            if item.item_id == item_id:
+                if new_name: item.item_name = new_name
+                if new_quantity: item.item_quantity = new_quantity
+                if new_price: item.item_price = new_price
+                if new_category: item.item_category = new_category
+                print(f"Item with ID {item_id} updated successfully.")
+                return
+        print(f"Item ID {item_id} not found.")
+
+    def search_item(self, item_id):
+        for item in self.items:
+            if item.item_id == item_id:
+                return item
+        return None
+
+    def to_dataframe(self):
+        data = {
+            'Item ID': [item.item_id for item in self.items],
+            'Item Name': [item.item_name for item in self.items],
+            'Quantity': [item.item_quantity for item in self.items],
+            'Price': [item.item_price for item in self.items],
+            'Category': [item.item_category for item in self.items]
+        }
+        df = pd.DataFrame(data)
+        df.insert(0, 'Serial No', range(1, len(df) + 1))
+        return df
+
+def input_with_validation(prompt, validation_func):
+    while True:
+        try:
+            value = input(prompt)
+            return validation_func(value)
+        except ValueError as e:
+            print(f"Invalid input: {e}")
+
+def add_item(inventory):
+    item_id = input_with_validation("Enter item ID: ", int)
+    item_name = input("Enter item name: ")
+    item_quantity = input_with_validation("Enter item quantity: ", int)
+    item_price = input_with_validation("Enter item price: ", float)
+    item_category = input("Enter item category: ")
+    item = InventoryItem(item_id, item_name, item_quantity, item_price, item_category)
+    inventory.add_item(item)
+
+def display_inventory(inventory):
+    df = inventory.to_dataframe()
     print(tabulate(df, headers='keys', tablefmt='grid', showindex=False, stralign='center', numalign='center'))
 
+def delete_item(inventory):
+    item_id = input_with_validation("Enter the Item ID you want to delete: ", int)
+    inventory.remove_item(item_id)
 
-def delete_item():
-    delete_item_id = int(input("Enter the Item ID you want to delete: "))
-    index_to_delete = id.index(delete_item_id)
-    del id[index_to_delete]
-    del name[index_to_delete]
-    del qty[index_to_delete]
-    del price[index_to_delete]
-    del cate[index_to_delete]
-    print(f"Item with Item ID {delete_item_id} deleted successfully.")
+def update_item(inventory):
+    item_id = input_with_validation("Enter the Item ID you want to update: ", int)
+    new_name = input("Enter new name (leave blank to keep current): ")
+    new_quantity = input_with_validation("Enter new quantity (leave blank to keep current): ", lambda x: int(x) if x else None)
+    new_price = input_with_validation("Enter new price (leave blank to keep current): ", lambda x: float(x) if x else None)
+    new_category = input("Enter new category (leave blank to keep current): ")
+    inventory.update_item(item_id, new_name, new_quantity, new_price, new_category)
 
-def update_item():
-    update_item_id = int(input("Enter the Item ID you want to update: "))
-    index_to_update = id.index(update_item_id)
-    print("Enter the new details for the item:")
-    name[index_to_update] = input(f"New name for item {update_item_id}: ")
-    qty[index_to_update] = int(input(f"New quantity for item {update_item_id}: "))
-    price[index_to_update] = float(input(f"New price for item {update_item_id}: "))
-    cate[index_to_update] = input(f"New category for item {update_item_id}: ")
-    print(f"Item with Item ID {update_item_id} updated successfully.")
-    
-def save_inventory():
+def save_inventory(inventory):
     filename = input("Enter the filename to save the inventory (include extension .csv or .json): ")
-    df = create_dataframe()
+    df = inventory.to_dataframe()
     if filename.endswith('.csv'):
         df.to_csv(filename, index=False)
         print(f"Inventory saved to {filename} successfully.")
@@ -84,28 +103,25 @@ def save_inventory():
         print(f"Inventory saved to {filename} successfully.")
     else:
         print("Unsupported file format. Please use .csv or .json extension.")
-        
-    
+
+inventory = Inventory()
+
 while True:
-    select = input("""1.) Add Item \n2.) Search Item \n3.) Desplay all Item \n4.) Delete Item \n5.) Update Item \n6.) File Save \n7.) Exit\n\n   """)
+    select = input("""1.) Add Item \n2.) Display All Items \n3.) Delete Item \n4.) Update Item \n5.) Save Inventory \n6.) Exit\n\n   """)
     print()
     if select == '1':
-        add_Item()
+        add_item(inventory)
     elif select == '2':
-        search_item()
+        display_inventory(inventory)
     elif select == '3':
-        display_inventory()
+        delete_item(inventory)
     elif select == '4':
-        delete_item()
-    
+        update_item(inventory)
     elif select == '5':
-        update_item()
-        
+        save_inventory(inventory)
     elif select == '6':
-        save_inventory()
-    elif select == '7':
         print("Database Is Successfully Closed")
         break
     else:
-        print("Invalid Enter!")
+        print("Invalid Entry!")
 
